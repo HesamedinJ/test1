@@ -1,69 +1,36 @@
 pipeline {
-
-    agent {
-        node {
-            label 'master'
-        }
-    }
-
-    options {
-        buildDiscarder logRotator( 
-                    daysToKeepStr: '16', 
-                    numToKeepStr: '10'
-            )
-    }
+    agent any
 
     stages {
-        
-        stage('Cleanup Workspace') {
+        stage('Init') {
             steps {
-                cleanWs()
-                sh """
-                echo "Cleaned Up Workspace For Project"
-                """
+                echo 'Initializing..'
+                echo "Running ${env.BUILD_ID} on ${env.JENKINS_URL}"
             }
         }
-
-        stage('Code Checkout') {
+        stage('Test') {
             steps {
-                checkout([
-                    $class: 'GitSCM', 
-                    branches: [[name: '*/main']], 
-                    userRemoteConfigs: [[url: 'https://github.com/spring-projects/spring-petclinic.git']]
-                ])
+                echo 'Testing..'
+                echo 'Running pytest..'
             }
         }
-
-        stage(' Unit Testing') {
+        stage('Build') {
             steps {
-                sh """
-                echo "Running Unit Tests"
-                """
+                echo 'Building..'
+                echo 'Running docker build -t sntshk/cotu .'
             }
         }
-
-        stage('Code Analysis') {
+        stage('Publish') {
             steps {
-                sh """
-                echo "Running Code Analysis"
-                """
+                echo 'Publishing..'
+                echo 'Running docker push..'
             }
         }
-
-        stage('Build Deploy Code') {
-            when {
-                branch 'develop'
-            }
+        stage('Cleanup') {
             steps {
-                sh """
-                echo "Building Artifact"
-                """
-
-                sh """
-                echo "Deploying Code"
-                """
+                echo 'Cleaning..'
+                echo 'Running docker rmi..'
             }
         }
-
-    }   
+    }
 }
